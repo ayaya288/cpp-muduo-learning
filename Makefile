@@ -1,12 +1,10 @@
 CC = g++
+OBJ = $(wildcard *.cpp)
 
 all: server
 
-server: TcpServer.o
-	$(CC) TcpServer.o main.cpp -o server
-
-TcpServer.o: TcpServer.cpp
-	$(CC) -c TcpServer.cpp
+server: $(OBJ)
+	$(CC) $(OBJ) -o server
 
 clean:
-	rm *.o server
+	rm server

@@ -5,32 +5,26 @@
 #ifndef CPP_MUDUO_LEARNING_TCPSERVER_H
 #define CPP_MUDUO_LEARNING_TCPSERVER_H
 
-#include <iostream>
-#include <sys/socket.h>
 #include <sys/epoll.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <cerrno>
-#include <cstring>
-#include <unistd.h>
+#include <map>
 
+#include "Define.h"
+#include "Declear.h"
+#include "IChannelCallBack.h"
 
-#define MAX_LINE 1024
-#define MAX_EVENTS 500
-#define MAX_LISTEN_FD 5
-#define LISTEN_PORT 6868
-
-#define SOCKET_CREATE_ERROR -10
-#define EPOLL_ERROR -11
-
-class TcpServer {
+class TcpServer: public IChannelCallBack{
 public:
     TcpServer();
     ~TcpServer();
     void start();
+    virtual void OnIn(int sockfd);
 private:
     int createAndListen();
 
+    int _epollfd;
+    int _listenfd;
+    struct epoll_event _events[MAX_EVENTS];
+    std::map<int, Channel*> _channels;
 };
 
 #endif //CPP_MUDUO_LEARNING_TCPSERVER_H

@@ -10,21 +10,19 @@
 
 #include "Define.h"
 #include "Declear.h"
-#include "IChannelCallBack.h"
+#include "IAcceptorCallBack.h"
 
-class TcpServer: public IChannelCallBack{
+class TcpServer: public IAcceptorCallBack{
 public:
     TcpServer();
     ~TcpServer();
     void start();
-    virtual void OnIn(int sockfd);
+    virtual void newConnection(int sockfd);
 private:
-    int createAndListen();
-
     int _epollfd;
-    int _listenfd;
     struct epoll_event _events[MAX_EVENTS];
-    std::map<int, Channel*> _channels;
+    std::map<int, TcpConnection*> _connections;
+    Acceptor* _pAcceptor;
 };
 
 #endif //CPP_MUDUO_LEARNING_TCPSERVER_H

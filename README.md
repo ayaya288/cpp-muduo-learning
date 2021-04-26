@@ -19,3 +19,12 @@
 4. Acceptor对象负责创建listenfd与处理新连接，初始化时从TcpServer获得epollfd
 5. TcpConnection对象负责处理实际的业务
 6. //TODO:四处内存泄漏未处理
+### v0.5 加入EventLoop和Epoll类
+1. 将epoll的创建，epoll_wait从TcpServer移除，包装为一个Epoll类
+2. 将Channel内的Update也移至Epoll内，为Channel类增加获取Events和Sockfd的方法
+3. TcpServer的start方法不再包含循环，仅仅只创建Acceptor
+4. 循环新建EventLoop类管理，EventLoop类与Epoll类一起完成epoll的管理
+5. 循环由main函数调用EventLoop.loop()开启，EventLoop类预留了_quit
+6. 程序的结构变为，EventLoop管理Epoll循环，TcpServer管理业务逻辑，因此原本需要传递给Channel
+的epollfd全部变更为EventLoop对象指针 
+7. //TODO:新增一处内存泄漏

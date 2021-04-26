@@ -3,10 +3,13 @@
 //
 
 #include "TcpServer.h"
+#include "EventLoop.h"
 
 int main() {
-    TcpServer server;
-    server.start();
+    EventLoop loop;
+    TcpServer tcpServer(&loop);
+    tcpServer.start();
+    loop.loop();
 
     return 0;
 }

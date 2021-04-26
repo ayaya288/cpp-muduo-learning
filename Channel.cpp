@@ -7,8 +7,8 @@
 #include <sys/epoll.h>
 #include <iostream>
 
-Channel::Channel(int epollfd, int sockfd):
-    _epollfd(epollfd),
+Channel::Channel(EventLoop* loop, int sockfd):
+    _loop(loop),
     _sockfd(sockfd),
     _events(0),
     _revents(0),
@@ -30,6 +30,10 @@ void Channel::handleEvent() {
     }
 }
 
+int Channel::getEvents() {
+    return _events;
+}
+
 int Channel::getSockfd() {
     return _sockfd;
 }
@@ -40,10 +44,5 @@ void Channel::enableReading() {
 }
 
 void Channel::update() {
-    struct epoll_event ev;
-    ev.data.ptr = this; //epoll_data记录此Channel的指针
-    ev.events = _events;
-    if(-1 == epoll_ctl(_epollfd, EPOLL_CTL_ADD, _sockfd, &ev)) {
-        std::cout << "epoll add new event error, errno: " << errno <<  std::endl;
-    }
+    _loop->update(this);
 }

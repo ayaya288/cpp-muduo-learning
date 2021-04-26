@@ -11,8 +11,8 @@
 #include <fcntl.h>
 #include <cstring>
 
-Acceptor::Acceptor(int epollfd):
-        _epollfd(epollfd),
+Acceptor::Acceptor(EventLoop* loop):
+        _loop(loop),
         _listenfd(-1),
         _pAcceptChannel(nullptr),
         _pCallBack(nullptr) {}
@@ -47,7 +47,7 @@ void Acceptor::setCallBack(IAcceptorCallBack *pCallBack) {
 void Acceptor::start() {
     _listenfd = createAndListen();
     //TODO:内存泄漏
-    _pAcceptChannel = new Channel(_epollfd, _listenfd);
+    _pAcceptChannel = new Channel(_loop, _listenfd);
     _pAcceptChannel->setCallBack(this);
     _pAcceptChannel->enableReading();
 }

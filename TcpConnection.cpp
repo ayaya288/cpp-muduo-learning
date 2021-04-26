@@ -9,11 +9,11 @@
 #include <unistd.h>
 #include <cstring>
 
-TcpConnection::TcpConnection(int epollfd, int sockfd):
-    _epollfd(epollfd),
+TcpConnection::TcpConnection(EventLoop* loop, int sockfd):
+    _loop(loop),
     _sockfd(sockfd) {
     //TODO:内存泄漏
-    _pChannel = new Channel(epollfd, sockfd);
+    _pChannel = new Channel(_loop, sockfd);
     _pChannel->setCallBack(this);
     _pChannel->enableReading();
 }

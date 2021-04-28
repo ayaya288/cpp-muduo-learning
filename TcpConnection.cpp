@@ -21,7 +21,7 @@ TcpConnection::TcpConnection(EventLoop* loop, int sockfd):
 TcpConnection::~TcpConnection() = default;
 
 void TcpConnection::OnIn(int sockfd) {
-    //处理业务
+    int readlength;
     if(sockfd < 0) {
         std::cout << "socket id minus error, errno: "<< errno << std::endl;
         return;
@@ -39,8 +39,28 @@ void TcpConnection::OnIn(int sockfd) {
         std::cout << "Client Connection closed: " << sockfd << std::endl;
         close(sockfd);
     } else {
-        if(write(sockfd, line, read_length) != read_length) {
-            std::cout << "error: write incomplete" << std::endl;
-        }
+        std::string buf(line, MAX_LINE);
+        _pUser->onMessage(this, buf);
     }
+}
+
+void TcpConnection::send(const std::string &message) {
+    int n = write(_sockfd, message.c_str(), message.size());
+    if(n != message.size()) {
+        std::cout << "error: write incomplete" << std::endl;
+    }
+}
+
+void TcpConnection::connectEstablished() {
+    if(_pUser) {
+        _pUser->onConnection(this);
+    }
+}
+
+void TcpConnection::setUser(IMuduoUser *pUser) {
+    _pUser = pUser;
+}
+
+void TcpConnection::setCallBack(IAcceptorCallBack *pCallBack) {
+    _pCallBack = pCallBack;
 }

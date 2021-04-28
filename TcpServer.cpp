@@ -11,9 +11,9 @@
 #include "TcpConnection.h"
 
 TcpServer::TcpServer(EventLoop* loop):
-    _epollfd(-1),
     _pAcceptor(nullptr),
-    _loop(loop) {}
+    _loop(loop),
+    _pUser(nullptr) {}
 
 TcpServer::~TcpServer() = default;
 
@@ -21,6 +21,8 @@ void TcpServer::newConnection(int sockfd) {
     //TODO:内存泄漏
     TcpConnection* tcp = new TcpConnection(_loop, sockfd);
     _connections[sockfd] = tcp;
+    tcp->setUser(_pUser);
+    tcp->connectEstablished();
 }
 
 void TcpServer::start() {
@@ -29,5 +31,9 @@ void TcpServer::start() {
     _pAcceptor = new Acceptor(_loop);
     _pAcceptor->setCallBack(this);
     _pAcceptor->start();
+}
+
+void TcpServer::setCallBack(IMuduoUser *user) {
+    _pUser = user;
 }
 

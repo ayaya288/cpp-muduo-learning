@@ -28,3 +28,8 @@
 6. 程序的结构变为，EventLoop管理Epoll循环，TcpServer管理业务逻辑，因此原本需要传递给Channel
 的epollfd全部变更为EventLoop对象指针 
 7. //TODO:新增一处内存泄漏
+### v0.6 加入IMuduoUser接口和EchoServer类
+1. 创建EchoServer类，实现IMuduoUser用于实现用户相关的逻辑处理
+2. 分离TcpConnection中OnIn处理逻辑，变为调用OnMessage将数据交由EchoServer处理
+3. 封装Write为send方法
+4. 运行逻辑修改为main创建EchoServer对象，再由其创建TcpServer

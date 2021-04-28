@@ -12,4 +12,6 @@ add_executable(cpp-muduo-learning
         TcpConnection.cpp TcpConnection.h
         Acceptor.cpp Acceptor.h
         EventLoop.cpp EventLoop.h
-        Epoll.cpp Epoll.h)
+        Epoll.cpp Epoll.h
+        IMuduoUser.h
+        EchoServer.cpp EchoServer.h)

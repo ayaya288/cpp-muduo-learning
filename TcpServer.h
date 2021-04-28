@@ -11,6 +11,7 @@
 #include "Define.h"
 #include "Declear.h"
 #include "EventLoop.h"
+#include "EchoServer.h"
 #include "IAcceptorCallBack.h"
 
 class TcpServer: public IAcceptorCallBack{
@@ -18,13 +19,14 @@ public:
     TcpServer(EventLoop* loop);
     ~TcpServer();
     void start();
+    void setCallBack(IMuduoUser* user);
     virtual void newConnection(int sockfd);
 private:
-    int _epollfd;
     struct epoll_event _events[MAX_EVENTS];
     std::map<int, TcpConnection*> _connections;
     Acceptor* _pAcceptor;
     EventLoop* _loop;
+    IMuduoUser* _pUser;
 };
 
 #endif //CPP_MUDUO_LEARNING_TCPSERVER_H

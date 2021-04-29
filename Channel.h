@@ -15,16 +15,21 @@ public:
     void setCallBack(IChannelCallBack* callBack);
     void handleEvent();
     void setRevents(int revents);
+    void enableReading();
+    void enableWriting();
+    void disableWriting();
+    bool isWriting();
+
     int getEvents();
     int getSockfd();
-    void enableReading();
 private:
     void update();
-    EventLoop* _loop;
     int _sockfd;
     int _events;
     int _revents;
-    IChannelCallBack* _callBack;
+    IChannelCallBack* _pCallBack;
+    EventLoop* _loop;
+
 };
 
 #endif //CPP_MUDUO_LEARNING_CHANNEL_H

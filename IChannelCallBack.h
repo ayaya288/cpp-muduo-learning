@@ -7,7 +7,8 @@
 
 class IChannelCallBack {
 public:
-    virtual void OnIn(int sockfd) {};
+    virtual void handleRead() = 0;
+    virtual void handleWrite() = 0;
 };
 
 #endif //CPP_MUDUO_LEARNING_ICHANNELCALLBACK_H

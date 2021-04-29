@@ -13,7 +13,7 @@ public:
     ~EchoServer();
     void start();
     virtual void onConnection(TcpConnection* pConn);
-    virtual void onMessage(TcpConnection* pConn, std::string& data);
+    virtual void onMessage(TcpConnection* pConn, std::string* data);
 private:
     EventLoop* _loop;
     TcpServer* _pServer;

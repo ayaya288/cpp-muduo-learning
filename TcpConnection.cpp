@@ -11,17 +11,23 @@
 
 TcpConnection::TcpConnection(EventLoop* loop, int sockfd):
     _loop(loop),
-    _sockfd(sockfd) {
-    //TODO:内存泄漏
+    _sockfd(sockfd),
+    _pUser(nullptr),
+    _inBuf(new std::string()),
+    _outBuf(new std::string()) {
     _pChannel = new Channel(_loop, sockfd);
     _pChannel->setCallBack(this);
     _pChannel->enableReading();
 }
 
-TcpConnection::~TcpConnection() = default;
+TcpConnection::~TcpConnection() {
+    delete _inBuf;
+    delete _outBuf;
+    delete _pChannel;
+}
 
-void TcpConnection::OnIn(int sockfd) {
-    int readlength;
+void TcpConnection::handleRead() {
+    int sockfd = _pChannel->getSockfd();
     if(sockfd < 0) {
         std::cout << "socket id minus error, errno: "<< errno << std::endl;
         return;
@@ -39,15 +45,38 @@ void TcpConnection::OnIn(int sockfd) {
         std::cout << "Client Connection closed: " << sockfd << std::endl;
         close(sockfd);
     } else {
-        std::string buf(line, MAX_LINE);
-        _pUser->onMessage(this, buf);
+        _inBuf->append(line, read_length);
+        _pUser->onMessage(this, _inBuf);
+    }
+
+}
+
+void TcpConnection::handleWrite() {
+    int sockfd = _pChannel->getSockfd();
+    if(_pChannel->isWriting()) {
+        int n = write(sockfd, _outBuf->c_str(), _outBuf->size());
+        if(n > 0) {
+            *_outBuf = _outBuf->substr(n, _outBuf->size());
+            if(_outBuf->empty()) {
+                _pChannel->disableWriting();
+            }
+        }
     }
 }
 
 void TcpConnection::send(const std::string &message) {
-    int n = write(_sockfd, message.c_str(), message.size());
-    if(n != message.size()) {
-        std::cout << "error: write incomplete" << std::endl;
+    int n = 0;
+    if(_outBuf->empty()) {
+        n = write(_sockfd, message.c_str(), message.size());
+        if(n < 0) {
+            std::cout << "write error!" << std::endl;
+        }
+    }
+    if(n < static_cast<int>(message.size())) {
+        *_outBuf += message.substr(n, message.size());
+        if(_pChannel->isWriting()) {
+            _pChannel->enableWriting();
+        }
     }
 }
 

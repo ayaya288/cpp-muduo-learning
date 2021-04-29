@@ -33,3 +33,8 @@
 2. 分离TcpConnection中OnIn处理逻辑，变为调用OnMessage将数据交由EchoServer处理
 3. 封装Write为send方法
 4. 运行逻辑修改为main创建EchoServer对象，再由其创建TcpServer
+### v0.7 加入缓冲区
+1. TcpConnection加入输入输出缓冲区_inBuf, _outBuf
+2. IChannelCallaBack改为handleWrite和handleRead两个接口
+3. handleWrite用于处理缓冲区的数据
+4. 需要增加注册EPOLLOUT事件

@@ -15,12 +15,12 @@ class TcpConnection: public IChannelCallBack{
 public:
     TcpConnection(EventLoop* loop, int sockfd);
     ~TcpConnection();
-    virtual void OnIn(int sockfd);
-
     void send(const std::string& message);
     void connectEstablished();
     void setUser(IMuduoUser* pUser);
     void setCallBack(IAcceptorCallBack* pCallBack);
+    virtual void handleRead();
+    virtual void handleWrite();
 
 private:
     EventLoop* _loop;
@@ -28,6 +28,8 @@ private:
     Channel* _pChannel;
     IMuduoUser* _pUser;
     IAcceptorCallBack* _pCallBack;
+    std::string* _inBuf;
+    std::string* _outBuf;
 };
 
 #endif //CPP_MUDUO_LEARNING_TCPCONNECTION_H

@@ -19,7 +19,7 @@ Acceptor::Acceptor(EventLoop* loop):
 
 Acceptor::~Acceptor() = default;
 
-void Acceptor::OnIn(int sockfd) {
+void Acceptor::handleRead() {
     //处理新的连接请求
     int connfd;
     struct sockaddr_in client_addr{};
@@ -38,6 +38,10 @@ void Acceptor::OnIn(int sockfd) {
     fcntl(connfd, F_SETFL, O_NONBLOCK);
 
     _pCallBack->newConnection(connfd);
+}
+
+void Acceptor::handleWrite() {
+
 }
 
 void Acceptor::setCallBack(IAcceptorCallBack *pCallBack) {

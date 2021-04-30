@@ -7,12 +7,14 @@
 
 #include "Declear.h"
 #include "TcpConnection.h"
+#include "Buffer.h"
 #include <string>
 
 class IMuduoUser {
 public:
     virtual void onConnection(TcpConnection* pConn) = 0;
-    virtual void onMessage(TcpConnection* pConn, std::string* data) = 0;
+    virtual void onMessage(TcpConnection* pConn, Buffer* pBuf) = 0;
+    virtual void onWriteComplete(TcpConnection* pConn) = 0;
 };
 
 #endif //CPP_MUDUO_LEARNING_IMUDUOUSER_H

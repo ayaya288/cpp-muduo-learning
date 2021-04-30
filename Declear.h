@@ -16,5 +16,6 @@ class TcpConnection;
 class EventLoop;
 class Epoll;
 class EchoServer;
+class Buffer;
 
 #endif //CPP_MUDUO_LEARNING_DECLEAR_H

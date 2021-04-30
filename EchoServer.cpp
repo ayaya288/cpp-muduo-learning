@@ -3,6 +3,7 @@
 //
 
 #include "EchoServer.h"
+#include <iostream>
 
 #define MESSAGE_LENGTH 9
 
@@ -21,20 +22,22 @@ void EchoServer::start() {
 }
 
 void EchoServer::onConnection(TcpConnection *pConn) {
-    //std::cout << "onConnection test successful" << std::endl;
+    std::cout << "onConnection test successful" << std::endl;
 }
 
-void EchoServer::onMessage(TcpConnection *pConn, std::string *data) {
+void EchoServer::onMessage(TcpConnection *pConn, Buffer* pBuf) {
     //临时测试，一次发送长度为MESSAGE_LENGTH的字符串
-    while(! data->empty()) {
+    while(pBuf->readableBytes() != 0) {
         std::string message;
-        if(data->size() > MESSAGE_LENGTH) {
-            message = data->substr(0, MESSAGE_LENGTH);
-            *data = data->substr(MESSAGE_LENGTH, data->size());
+        if(pBuf->readableBytes() > MESSAGE_LENGTH) {
+            message = pBuf->retrieveAsString(MESSAGE_LENGTH);
         } else {
-            message = data->substr(0, data->size());
-            *data = "";
+            message = pBuf->retrieveAllAsString();
         }
         pConn->send(message + "\n");
     }
+}
+
+void EchoServer::onWriteComplete(TcpConnection *pConn) {
+    std::cout << "onWriteComplete test successful" << std::endl;
 }

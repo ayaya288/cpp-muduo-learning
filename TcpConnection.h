@@ -7,11 +7,14 @@
 
 #include "IChannelCallBack.h"
 #include "IMuduoUser.h"
+#include "IRun.h"
 #include "Channel.h"
 #include "EventLoop.h"
+#include "Buffer.h"
 #include <string>
 
-class TcpConnection: public IChannelCallBack{
+class TcpConnection: public IChannelCallBack,
+                     public IRun {
 public:
     TcpConnection(EventLoop* loop, int sockfd);
     ~TcpConnection();
@@ -21,15 +24,15 @@ public:
     void setCallBack(IAcceptorCallBack* pCallBack);
     virtual void handleRead();
     virtual void handleWrite();
-
+    virtual void run();
 private:
     EventLoop* _loop;
     int _sockfd;
     Channel* _pChannel;
     IMuduoUser* _pUser;
     IAcceptorCallBack* _pCallBack;
-    std::string* _inBuf;
-    std::string* _outBuf;
+    Buffer _inBuf;
+    Buffer _outBuf;
 };
 
 #endif //CPP_MUDUO_LEARNING_TCPCONNECTION_H

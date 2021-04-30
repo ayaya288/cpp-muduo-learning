@@ -38,3 +38,7 @@
 2. IChannelCallaBack改为handleWrite和handleRead两个接口
 3. handleWrite用于处理缓冲区的数据
 4. 需要增加注册EPOLLOUT事件
+### v0.8 加入onComplate和Buffer类
+1. 优化Buffer为一个类，提供与muduo库类似的接口
+2. IMuduoUser接口加入onWriteComplate回调
+3. EventLoop创建一个eventfd用于异步处理onComplete，需要再实现IChannelCallBack

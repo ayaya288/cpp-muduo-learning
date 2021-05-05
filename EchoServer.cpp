@@ -8,14 +8,15 @@
 #define MESSAGE_LENGTH 9
 
 EchoServer::EchoServer(EventLoop* pLoop):
-    _loop(pLoop) {
+    _loop(pLoop),
+    _pServer(nullptr),
+    _timer(-1),
+    _index(0) {
     _pServer = new TcpServer(_loop);
     _pServer->setCallBack(this);
 }
 
-EchoServer::~EchoServer() {
-    delete _pServer;
-}
+EchoServer::~EchoServer() = default;
 
 void EchoServer::start() {
     _pServer->start();
@@ -36,8 +37,17 @@ void EchoServer::onMessage(TcpConnection *pConn, Buffer* pBuf) {
         }
         pConn->send(message + "\n");
     }
+    _timer = _loop->runEvery(3, this);
 }
 
 void EchoServer::onWriteComplete(TcpConnection *pConn) {
     std::cout << "onWriteComplete test successful" << std::endl;
+}
+
+void EchoServer::run(void *param) {
+    std::cout << _index << std::endl;
+    if(_index++ == 3) {
+        _loop->cancelTimer(_timer);
+        _index = 0;
+    }
 }

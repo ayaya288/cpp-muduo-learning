@@ -9,7 +9,8 @@
 
 EventLoop::EventLoop():
     _quit(false),
-    _poller(new Epoll()) {
+    _poller(new Epoll()),
+    _pTimerQueue(new TimerQueue(this)) {
     _eventfd = createEventfd();
     _wakeupChannel = new Channel(this, _eventfd);
     _wakeupChannel->setCallBack(this);
@@ -18,6 +19,7 @@ EventLoop::EventLoop():
 
 EventLoop::~EventLoop() {
     delete _poller;
+    delete _pTimerQueue;
 }
 
 void EventLoop::loop() {
@@ -47,9 +49,26 @@ void EventLoop::handleWrite() {
 
 }
 
-void EventLoop::queueLoop(IRun *pRun) {
-    _pendingFuctors.push_back(pRun);
+void EventLoop::queueLoop(IRun *pRun, void* param) {
+    Runner r(pRun, param);
+    _pendingFuctors.push_back(r);
     wakeup();
+}
+
+int64_t EventLoop::runAt(TimeStamp when, IRun *pRun) {
+    return _pTimerQueue->addTimer(pRun, when, 0.0);
+}
+
+int64_t EventLoop::runAfter(double delay, IRun *pRun) {
+    return _pTimerQueue->addTimer(pRun, TimeStamp::nowAfter(delay), 0.0);
+}
+
+int64_t EventLoop::runEvery(double interval, IRun *pRun) {
+    return _pTimerQueue->addTimer(pRun, TimeStamp::nowAfter(interval), interval);
+}
+
+void EventLoop::cancelTimer(int64_t timerfd) {
+    _pTimerQueue->cancelTimer(timerfd);
 }
 
 void EventLoop::wakeup() {
@@ -69,9 +88,9 @@ int EventLoop::createEventfd() {
 }
 
 void EventLoop::doPendingFuctors() {
-    std::vector<IRun*> tempRuns;
+    std::vector<Runner> tempRuns;
     tempRuns.swap(_pendingFuctors);
-    for(auto i : tempRuns) {
-        i->run();
+    for(auto it : tempRuns) {
+        it.doRun();
     }
 }

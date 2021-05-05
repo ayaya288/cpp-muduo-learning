@@ -42,3 +42,8 @@
 1. 优化Buffer为一个类，提供与muduo库类似的接口
 2. IMuduoUser接口加入onWriteComplate回调
 3. EventLoop创建一个eventfd用于异步处理onComplete，需要再实现IChannelCallBack
+### v0.9 加入定时器Timer
+1. 新增TimeStamp用来存储时间戳，TimerQueue保存定时器队列
+2. EventLoop提供runAt, runAfter, runEvery, cancelTimer
+3. 创建TimerQueue的同时创建一个对应的timerfd和Channel，保持timerfd为最近的定时器实现一个fd多个定时器
+

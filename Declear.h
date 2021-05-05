@@ -8,6 +8,7 @@
 class IChannelCallBack;
 class IAcceptorCallBack;
 class IMuduoUser;
+class IRun;
 
 class TcpServer;
 class Channel;
@@ -17,5 +18,7 @@ class EventLoop;
 class Epoll;
 class EchoServer;
 class Buffer;
+class TimerQueue;
+class TimeStamp;
 
 #endif //CPP_MUDUO_LEARNING_DECLEAR_H

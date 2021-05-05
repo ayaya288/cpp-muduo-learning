@@ -56,7 +56,7 @@ void TcpConnection::handleWrite() {
             _outBuf.retrieve(n);
             if(_outBuf.readableBytes() == 0) {
                 _pChannel->disableWriting();
-                _loop->queueLoop(this);
+                _loop->queueLoop(this, nullptr);
             }
         }
     }
@@ -70,7 +70,7 @@ void TcpConnection::send(const std::string &message) {
             std::cout << "write error!" << std::endl;
         }
         if(n == static_cast<int>(message.size())) {
-            _loop->queueLoop(this);
+            _loop->queueLoop(this, nullptr);
         }
     }
     if(n < static_cast<int>(message.size())) {
@@ -95,6 +95,6 @@ void TcpConnection::setCallBack(IAcceptorCallBack *pCallBack) {
     _pCallBack = pCallBack;
 }
 
-void TcpConnection::run() {
+void TcpConnection::run(void* param) {
     _pUser->onWriteComplete(this);
 }

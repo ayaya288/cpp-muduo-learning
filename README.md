@@ -46,4 +46,6 @@
 1. 新增TimeStamp用来存储时间戳，TimerQueue保存定时器队列
 2. EventLoop提供runAt, runAfter, runEvery, cancelTimer
 3. 创建TimerQueue的同时创建一个对应的timerfd和Channel，保持timerfd为最近的定时器实现一个fd多个定时器
-
+### v0.10 加入多线程
+1. 过渡版本，完成线程池的编写
+2. 用RAII封装Mutex

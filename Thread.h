@@ -7,18 +7,18 @@
 
 #include "BlockingQueue.h"
 #include "IRun.h"
+#include "Task.h"
 
 #include <pthread.h>
 
 class Thread {
 public:
-    explicit Thread(IRun* pRun);
+    explicit Thread(Task& task);
     ~Thread();
     void start();
-    void run();
     pid_t gettid();
 
 private:
-    IRun* _run;
+    Task _task;
 };
 #endif //CPP_MUDUO_LEARNING_THREAD_H

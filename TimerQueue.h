@@ -9,71 +9,22 @@
 #include "IChannelCallBack.h"
 #include "IRun.h"
 #include "TimeStamp.h"
+#include "Timer.h"
 
 #include <vector>
 #include <set>
 
-class TimerQueue: public IChannelCallBack{
+class TimerQueue: public IChannelCallBack
+                ,public IRun2 {
 public:
-    class Timer{
-    public:
-        Timer(TimeStamp stamp, IRun* pRun, double interval):
-            _stamp(stamp),
-            _id(stamp),
-            _pRun(pRun),
-            _interval(interval) {};
-        TimeStamp getStamp() {
-            return _stamp;
-        }
-        TimeStamp getID() {
-            return _id;
-        }
-        void run() {
-            _pRun->run(this);
-        }
-        bool isRepeat() {
-            return _interval > 0.0;
-        }
-        void moveToNext() {
-            _stamp = TimeStamp::nowAfter(_interval);
-        }
-
-    private:
-        TimeStamp _stamp;
-        TimeStamp _id;
-        IRun* _pRun;
-        double _interval;
-    };
-
-    class AddTimerWrapper: public IRun{
-    public:
-        AddTimerWrapper(TimerQueue* pQueue):
-            _pQueue(pQueue) {};
-        virtual void run(void* param) {
-            _pQueue->doAddTimer(param);
-        }
-    private:
-        TimerQueue* _pQueue;
-
-    };
-
-    class CancelTimerWrapper: public IRun{
-    public:
-        CancelTimerWrapper(TimerQueue* pQueue):
-            _pQueue(pQueue) {};
-        virtual void run(void* param) {
-            _pQueue->doCancelTimer(param);
-        }
-    private:
-        TimerQueue* _pQueue;
-    };
-
     TimerQueue(EventLoop* loop);
     ~TimerQueue();
-    void doAddTimer(void* param);
-    void doCancelTimer(void* param);
-    int64_t addTimer(IRun* pRun, const TimeStamp& when, double interval);
+    void doAddTimer(Timer* timer);
+    void doCancelTimer(Timer* timer);
+    int64_t addTimer(IRun0* pRun, const TimeStamp& when, double interval);
     void cancelTimer(int64_t timerId);
+
+    virtual void run2(const std::string& str, void* timer);
 
     virtual void handleRead();
     virtual void handleWrite();
@@ -94,8 +45,6 @@ private:
     TimerList _timers;
     EventLoop* _loop;
     Channel* _timerfdChannel;
-    AddTimerWrapper* _addTimerWrapper;
-    CancelTimerWrapper* _cancelTimerWrapper;
 };
 
 #endif //CPP_MUDUO_LEARNING_TIMERQUEUE_H

@@ -49,3 +49,8 @@
 ### v0.10 加入多线程
 1. 过渡版本，完成线程池的编写
 2. 用RAII封装Mutex
+### v0.11 Reactor + ThreadPool 完成
+1. IRun回调改为有两个参数和无参数的IRun2 IRun0
+2. 修改EventLoop::Runner为Task，用于IRun回调
+3. 修改各类以实现更改后的接口
+4. Reactor + ThreadPool 最终完成

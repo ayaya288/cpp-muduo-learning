@@ -17,7 +17,9 @@ Acceptor::Acceptor(EventLoop* loop):
         _pAcceptChannel(nullptr),
         _pCallBack(nullptr) {}
 
-Acceptor::~Acceptor() = default;
+Acceptor::~Acceptor() {
+    delete _pAcceptChannel;
+}
 
 void Acceptor::handleRead() {
     //处理新的连接请求
@@ -50,7 +52,6 @@ void Acceptor::setCallBack(IAcceptorCallBack *pCallBack) {
 
 void Acceptor::start() {
     _listenfd = createAndListen();
-    //TODO:内存泄漏
     _pAcceptChannel = new Channel(_loop, _listenfd);
     _pAcceptChannel->setCallBack(this);
     _pAcceptChannel->enableReading();

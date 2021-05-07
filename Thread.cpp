@@ -9,12 +9,12 @@
 #include <sys/syscall.h>
 
 void* globalRun(void* arg) {
-    ((Thread*)arg) -> run();
+    ((Task*)arg) -> doTask();
     return nullptr;
 }
 
-Thread::Thread(IRun *pRun)
-    :_run(pRun) {
+Thread::Thread(Task& task)
+    : _task(task) {
 
 }
 
@@ -23,10 +23,6 @@ Thread::~Thread() = default;
 void Thread::start() {
     pthread_t t;
     pthread_create(&t, nullptr, globalRun, this);
-}
-
-void Thread::run() {
-    _run->run(nullptr);
 }
 
 pid_t Thread::gettid() {

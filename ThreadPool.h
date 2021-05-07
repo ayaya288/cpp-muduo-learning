@@ -11,17 +11,17 @@
 
 #include <vector>
 
-class ThreadPool: public IRun {
+class ThreadPool: public IRun0 {
 public:
     ThreadPool();
     ~ThreadPool();
     void start(int numThreads);
-    void addTask(IRun* ptask);
-    virtual void run(void* param);
+    void addTask(Task& task);
+    virtual void run0();
 
 private:
     [[noreturn]] void runInThread();
-    BlockingQueue<IRun*> _tasks;
+    BlockingQueue<Task> _tasks;
     std::vector<Thread*> _threads;
 };
 

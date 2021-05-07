@@ -3,7 +3,9 @@
 //
 
 #include "TcpConnection.h"
+#include "IAcceptorCallBack.h"
 #include "Define.h"
+#include "Task.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -56,13 +58,23 @@ void TcpConnection::handleWrite() {
             _outBuf.retrieve(n);
             if(_outBuf.readableBytes() == 0) {
                 _pChannel->disableWriting();
-                _loop->queueLoop(this, nullptr);
+                Task task(this);
+                _loop->queueInLoop(task);
             }
         }
     }
 }
 
 void TcpConnection::send(const std::string &message) {
+    if(_loop->isInLoopThread()) {
+        sendInLoop(message);
+    } else {
+        Task task(this, message, this);
+        _loop->runInLoop(task);
+    }
+}
+
+void TcpConnection::sendInLoop(const std::string &message) {
     int n = 0;
     if(_outBuf.readableBytes() == 0) {
         n = write(_sockfd, message.c_str(), message.size());
@@ -70,7 +82,8 @@ void TcpConnection::send(const std::string &message) {
             std::cout << "write error!" << std::endl;
         }
         if(n == static_cast<int>(message.size())) {
-            _loop->queueLoop(this, nullptr);
+            Task task(this);
+            _loop->runInLoop(task);
         }
     }
     if(n < static_cast<int>(message.size())) {
@@ -95,6 +108,10 @@ void TcpConnection::setCallBack(IAcceptorCallBack *pCallBack) {
     _pCallBack = pCallBack;
 }
 
-void TcpConnection::run(void* param) {
+void TcpConnection::run0() {
     _pUser->onWriteComplete(this);
+}
+
+void TcpConnection::run2(const std::string &message, void *param) {
+    sendInLoop(message);
 }

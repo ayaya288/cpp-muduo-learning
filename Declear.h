@@ -8,7 +8,8 @@
 class IAcceptorCallBack;
 class IChannelCallBack;
 class IMuduoUser;
-class IRun;
+class IRun0;
+class IRun2;
 
 class Acceptor;
 class Buffer;
@@ -16,10 +17,14 @@ class Channel;
 class EchoServer;
 class Epoll;
 class EventLoop;
+class MutexLock;
+class MutexLockGuard;
+class Task;
 class TcpConnection;
 class TcpServer;
 class Thread;
 class ThreadPool;
+class Timer;
 class TimerQueue;
 class TimeStamp;
 

@@ -13,12 +13,10 @@
 #include "EventLoop.h"
 #include "TimeStamp.h"
 
-TimerQueue::TimerQueue(EventLoop *loop):
-    _timerfd(createTimerfd()),
-    _loop(loop),
-    _timerfdChannel(new Channel(_loop, _timerfd)),
-    _addTimerWrapper(new AddTimerWrapper(this)),
-    _cancelTimerWrapper(new CancelTimerWrapper(this)) {
+TimerQueue::TimerQueue(EventLoop *loop)
+    :_timerfd(createTimerfd())
+    ,_loop(loop)
+    ,_timerfdChannel(new Channel(_loop, _timerfd)) {
     _timerfdChannel->setCallBack(this);
     _timerfdChannel->enableReading();
 }
@@ -26,20 +24,16 @@ TimerQueue::TimerQueue(EventLoop *loop):
 TimerQueue::~TimerQueue() {
     close(_timerfd);
     delete _timerfdChannel;
-    delete _addTimerWrapper;
-    delete _cancelTimerWrapper;
 }
 
-void TimerQueue::doAddTimer(void *param) {
-    Timer* pTimer = static_cast<Timer*>(param);
+void TimerQueue::doAddTimer(Timer* pTimer) {
     bool earliestChanged = insert(pTimer);
     if(earliestChanged) {
         resetTimerfd(_timerfd, pTimer->getStamp());
     }
 }
 
-void TimerQueue::doCancelTimer(void *param) {
-    auto* pTimer = static_cast<Timer*>(param);
+void TimerQueue::doCancelTimer(Timer* pTimer) {
     Entry e(pTimer->getID(), pTimer);
     for(auto& it : _timers) {
         if(it.second == pTimer) {
@@ -54,14 +48,19 @@ void TimerQueue::doCancelTimer(void *param) {
 /// @param when: time
 /// @param interval: 0-happen only once, n-happen every n seconds
 /// @return the process unique id of the timer
-int64_t TimerQueue::addTimer(IRun *pRun, const TimeStamp& when, double interval) {
-    Timer* pTimer = new Timer(when, pRun, interval);
-    _loop->queueLoop(_addTimerWrapper, pTimer);
-    return reinterpret_cast<int64_t>(pTimer);
+int64_t TimerQueue::addTimer(IRun0 *pRun, const TimeStamp& when, double interval) {
+    Timer* pAddTimer = new Timer(when, pRun, interval);
+    std::string str("add");
+    Task task(this, str, pAddTimer);
+    _loop->queueInLoop(task);
+    return reinterpret_cast<int64_t>(pAddTimer);
 }
 
 void TimerQueue::cancelTimer(int64_t timerId) {
-    _loop->queueLoop(_cancelTimerWrapper, (void*)timerId);
+    Timer* pCancelTimer = reinterpret_cast<Timer*>(timerId);
+    std::string str("cancel");
+    Task task(this, str, pCancelTimer);
+    _loop->queueInLoop(task);
 }
 
 void TimerQueue::handleRead() {
@@ -70,7 +69,7 @@ void TimerQueue::handleRead() {
 
     std::vector<Entry> expired = getExpired(now);
     for(auto& it : expired) {
-        it.second->run();
+        it.second->timeout();
     }
     reset(expired, now);
 }
@@ -155,4 +154,16 @@ struct timespec TimerQueue::howMuchTimeFromNow(TimeStamp when) {
     ts.tv_sec = static_cast<time_t>(microseconds / TimeStamp::kMicroSecondsPerSecond);
     ts.tv_nsec = static_cast<long>((microseconds % TimeStamp::kMicroSecondsPerSecond) * 1000);
     return ts;
+}
+
+void TimerQueue::run2(const std::string &str, void *timer) {
+    auto* pTimer = reinterpret_cast<Timer*>(timer);
+    if(str == "add") {
+        doAddTimer(pTimer);
+        return;;
+    }
+    if(str == "cancel") {
+        doCancelTimer(pTimer);
+        return;
+    }
 }

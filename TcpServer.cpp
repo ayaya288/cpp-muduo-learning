@@ -15,19 +15,23 @@ TcpServer::TcpServer(EventLoop* loop):
     _loop(loop),
     _pUser(nullptr) {}
 
-TcpServer::~TcpServer() = default;
+TcpServer::~TcpServer() {
+    delete _pAcceptor;
+}
 
 void TcpServer::newConnection(int sockfd) {
-    //TODO:内存泄漏
-    TcpConnection* tcp = new TcpConnection(_loop, sockfd);
+    TcpConnection* tcp = new TcpConnection(_loop, sockfd); //TODO~:Memory Leak!
     _connections[sockfd] = tcp;
     tcp->setUser(_pUser);
     tcp->connectEstablished();
 }
 
+void TcpServer::closedConnection(int sockfd) {
+    //未处理
+}
+
 void TcpServer::start() {
     //创建Acceptor用于创建listenfd和建立连接
-    //TODO:内存泄漏
     _pAcceptor = new Acceptor(_loop);
     _pAcceptor->setCallBack(this);
     _pAcceptor->start();

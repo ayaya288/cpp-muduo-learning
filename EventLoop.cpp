@@ -3,14 +3,22 @@
 //
 
 #include <sys/eventfd.h>
-#include "EventLoop.h"
-#include <unistd.h>
-#include <iostream>
+#include <sys/syscall.h>
 
-EventLoop::EventLoop():
-    _quit(false),
-    _poller(new Epoll()),
-    _pTimerQueue(new TimerQueue(this)) {
+#include "EventLoop.h"
+#include "Channel.h"
+#include "Epoll.h"
+#include "TimerQueue.h"
+#include "Task.h"
+#include <iostream>
+#include <unistd.h>
+
+EventLoop::EventLoop()
+    :_quit(false)
+    ,_callingPendingFactors(false)
+    ,_poller(new Epoll)
+    ,_threadId(static_cast<pid_t>(syscall(SYS_gettid)))
+    ,_pTimerQueue(new TimerQueue(this)) {
     _eventfd = createEventfd();
     _wakeupChannel = new Channel(this, _eventfd);
     _wakeupChannel->setCallBack(this);
@@ -26,6 +34,7 @@ void EventLoop::loop() {
     while(!_quit) {
         std::vector<Channel*> channels;
         _poller->poll(channels);
+
         for(auto c : channels) {
             c->handleEvent();
         }
@@ -49,21 +58,32 @@ void EventLoop::handleWrite() {
 
 }
 
-void EventLoop::queueLoop(IRun *pRun, void* param) {
-    Runner r(pRun, param);
-    _pendingFuctors.push_back(r);
-    wakeup();
+void EventLoop::queueInLoop(Task& task) {
+    MutexLockGuard guard(_mutex);
+    _pendingFuctors.push_back(task);
+
+    if(!isInLoopThread() || _callingPendingFactors) {
+        wakeup();
+    }
 }
 
-int64_t EventLoop::runAt(TimeStamp when, IRun *pRun) {
+void EventLoop::runInLoop(Task& task) {
+    if(!isInLoopThread()) {
+        task.doTask();
+    } else {
+        queueInLoop(task);
+    }
+}
+
+int64_t EventLoop::runAt(TimeStamp when, IRun0 *pRun) {
     return _pTimerQueue->addTimer(pRun, when, 0.0);
 }
 
-int64_t EventLoop::runAfter(double delay, IRun *pRun) {
+int64_t EventLoop::runAfter(double delay, IRun0 *pRun) {
     return _pTimerQueue->addTimer(pRun, TimeStamp::nowAfter(delay), 0.0);
 }
 
-int64_t EventLoop::runEvery(double interval, IRun *pRun) {
+int64_t EventLoop::runEvery(double interval, IRun0 *pRun) {
     return _pTimerQueue->addTimer(pRun, TimeStamp::nowAfter(interval), interval);
 }
 
@@ -88,9 +108,16 @@ int EventLoop::createEventfd() {
 }
 
 void EventLoop::doPendingFuctors() {
-    std::vector<Runner> tempRuns;
+    std::vector<Task> tempRuns;
+    _callingPendingFactors = true;
+    MutexLockGuard guard(_mutex);
     tempRuns.swap(_pendingFuctors);
     for(auto it : tempRuns) {
-        it.doRun();
+        it.doTask();
     }
+    _callingPendingFactors = true;
+}
+
+bool EventLoop::isInLoopThread() {
+    return _threadId == static_cast<pid_t>(syscall(SYS_gettid));
 }

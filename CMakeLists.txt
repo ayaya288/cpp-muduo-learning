@@ -15,10 +15,12 @@ add_executable(cpp-muduo-learning
         Epoll.cpp Epoll.h
         EventLoop.cpp EventLoop.h
         Mutex.h
+        Task.cpp Task.h
         TcpConnection.cpp TcpConnection.h
         TcpServer.cpp TcpServer.h
         Thread.cpp Thread.h
         ThreadPool.cpp ThreadPool.h
+        Timer.h
         TimeStamp.cpp TimeStamp.h
         TimerQueue.cpp TimerQueue.h)
 

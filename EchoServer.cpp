@@ -3,23 +3,28 @@
 //
 
 #include "EchoServer.h"
+#include "Task.h"
+#include <sys/syscall.h>
 #include <iostream>
+#include <unistd.h>
 
 #define MESSAGE_LENGTH 9
 
 EchoServer::EchoServer(EventLoop* pLoop):
     _loop(pLoop),
-    _pServer(nullptr),
+    _pServer(new TcpServer(pLoop)),
     _timer(-1),
     _index(0) {
-    _pServer = new TcpServer(_loop);
     _pServer->setCallBack(this);
 }
 
-EchoServer::~EchoServer() = default;
+EchoServer::~EchoServer() {
+    delete _pServer;
+}
 
 void EchoServer::start() {
     _pServer->start();
+    _threadPool.start(3);
 }
 
 void EchoServer::onConnection(TcpConnection *pConn) {
@@ -35,19 +40,39 @@ void EchoServer::onMessage(TcpConnection *pConn, Buffer* pBuf) {
         } else {
             message = pBuf->retrieveAllAsString();
         }
-        pConn->send(message + "\n");
+        Task task(this, message, pConn);
+        _threadPool.addTask(task);
+        _index = 3;
+        _loop->runAfter(3, this);
     }
-    _timer = _loop->runEvery(3, this);
 }
 
 void EchoServer::onWriteComplete(TcpConnection *pConn) {
     std::cout << "onWriteComplete test successful" << std::endl;
 }
 
-void EchoServer::run(void *param) {
-    std::cout << _index << std::endl;
-    if(_index++ == 3) {
-        _loop->cancelTimer(_timer);
-        _index = 0;
+void EchoServer::run0() {
+    if(_index) {
+        std::cout << _index << std::endl;
+        --_index;
     }
+}
+
+void EchoServer::run2(const std::string& str, void* tcp) {
+    std::cout << "fib(30) = " << fib(30) << "tid = " << static_cast<pid_t>(syscall(SYS_gettid)) << std::endl;
+    ((TcpConnection*)tcp)->send(str + "\n");
+}
+
+int EchoServer::fib(int n) {
+    if(n <= 0) return 0;
+    int f0 = 0;
+    int f1 = 1;
+    n -= 2;
+    while(n > 0) {
+        int buf = f0;
+        f0 = f1;
+        f1 = f0 + buf;
+        --n;
+    }
+    return f0 + f1;
 }
